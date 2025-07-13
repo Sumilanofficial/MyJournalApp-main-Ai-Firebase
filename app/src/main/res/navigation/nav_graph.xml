@@ -50,4 +50,9 @@
         android:name="com.matrix.myjournal.JournalsFragment"
         android:label="fragment_journals"
         tools:layout="@layout/fragment_journals" />
+    <activity
+        android:id="@+id/registrationActivity2"
+        android:name="com.matrix.myjournal.RegistrationActivity"
+        android:label="activity_registration"
+        tools:layout="@layout/activity_registration" />
 </navigation>

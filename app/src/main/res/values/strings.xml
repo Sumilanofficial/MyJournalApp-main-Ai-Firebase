@@ -53,6 +53,7 @@
     <string name="etTitle">Edit Title</string>
     <string name="add_questions">Add Questions</string>
     <string name="Insights">Insights\n</string>
+    <string name="default_web_client_id">912212754414-0buo46mnk2s6u3eut6q2leeulr2ks032.apps.googleusercontent.com</string>
 
 
 </resources>

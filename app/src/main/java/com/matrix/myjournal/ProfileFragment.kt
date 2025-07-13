@@ -1,6 +1,7 @@
 package com.matrix.myjournal
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.matrix.myjournal.DataClasses.SharedViewModel
 import com.matrix.myjournal.databinding.FragmentProfileBinding
 import com.matrix.myjournal.databinding.UserdetailDialogBinding
@@ -61,7 +63,16 @@ class ProfileFragment : Fragment() {
         }
 
         binding?.signout?.setOnClickListener {
-            Toast.makeText(requireContext(), "Features will be added soon ", Toast.LENGTH_SHORT).show()
+            FirebaseAuth.getInstance().signOut() // 1. Sign out from Firebase
+
+            Toast.makeText(requireContext(), "Signed out successfully", Toast.LENGTH_SHORT).show()
+
+            // 2. Redirect to SignInActivity or RegistrationActivity
+            val intent = Intent(requireContext(), RegistrationActivity::class.java) // or RegistrationActivity
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // 3. Clear back stack
+            startActivity(intent)
+
+            requireActivity().finish() // 4. Finish current activity
         }
     }
 
