@@ -6,31 +6,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.anychart.AnyChart
 import com.anychart.AnyChartView
 import com.anychart.chart.common.dataentry.DataEntry
 import com.anychart.chart.common.dataentry.ValueDataEntry
-import com.anychart.charts.Pie
 import com.anychart.enums.TooltipPositionMode
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.matrix.myjournal.DataClasses.JournalEntry
 import com.matrix.myjournal.databinding.FragmentPieChartBinding
-import com.matrix.myjournal.questionresdatabase.QuestionResDatabase
-import com.matrix.myjournal.questionresdatabase.WordCountPerDay
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class PieChartFragment : Fragment() {
 
     private var binding: FragmentPieChartBinding? = null
-
+    private lateinit var pieChartView: AnyChartView
+    private val TAG = "PieChartFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentPieChartBinding.inflate(inflater, container, false)
-        return binding?.root
+        pieChartView = binding!!.anyChartViewPie  // Initialize here
+        return binding!!.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -39,41 +37,33 @@ class PieChartFragment : Fragment() {
     }
 
     private fun fetchAndDisplayData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // Fetch data from the database
-                val wordCounts = withContext(Dispatchers.IO) {
-                    QuestionResDatabase.getInstance(requireContext()).questionResDao().getWordCountPerDay()
+        Firebase.firestore.collection("JournalEntries")
+            .get()
+            .addOnSuccessListener { result ->
+                var totalWords = 0
+                var totalImages = 0
+
+                for (document in result.documents) {
+                    val entry = document.toObject(JournalEntry::class.java)
+                    if (entry != null) {
+                        totalWords += entry.combinedResponse?.split("\\s+".toRegex())?.size ?: 0
+                        totalImages += entry.imageUrls?.size ?: 0
+                    }
                 }
 
-                // Observe the total images count
-                val totalImagesCountLiveData = QuestionResDatabase.getInstance(requireContext()).questionResDao().getTotalImagesCount()
-                totalImagesCountLiveData.observe(viewLifecycleOwner) { totalImagesCount ->
-                    // Log fetched data for debugging
-                    Log.d("PieChartFragment", "Fetched wordCounts: $wordCounts")
-                    Log.d("PieChartFragment", "Fetched totalImagesCount: $totalImagesCount")
-
-                    // Display the chart with the fetched data
-                    displayChart(wordCounts, totalImagesCount)
-                }
-            } catch (e: Exception) {
-                // Log error for debugging
-                Log.e("PieChartFragment", "Error fetching data", e)
+                Log.d(TAG, "Total Words: $totalWords, Total Images: $totalImages")
+                displayChart(totalWords, totalImages)
             }
-        }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error fetching Firestore data", e)
+            }
     }
 
-
-    private fun displayChart(wordCounts: List<WordCountPerDay>, totalImagesCount: Int) {
-        val pieChartView: AnyChartView? = binding?.anyChartViewPie
-
-        // Prepare data entries for the pie chart
+    private fun displayChart(totalWords: Int, totalImages: Int) {
         val pieData: MutableList<DataEntry> = ArrayList()
-        val totalWords = wordCounts.sumOf { it.wordCount }
         pieData.add(ValueDataEntry("Total Words", totalWords))
-        pieData.add(ValueDataEntry("Total Images", totalImagesCount))
+        pieData.add(ValueDataEntry("Total Images", totalImages))
 
-        // Create and configure the pie chart
         val pie = AnyChart.pie()
         pie.data(pieData)
         pie.title("Total Words and Images")
@@ -83,12 +73,13 @@ class PieChartFragment : Fragment() {
         pie.legend().position("bottom")
         pie.tooltip().positionMode(TooltipPositionMode.POINT)
 
-        // Set the pie chart to the view
-        pieChartView?.setChart(pie)
+        pieChartView.setChart(pie)
 
-        // Log chart setup for debugging
-        Log.d("PieChartFragment", "Pie chart displayed with data: $pieData")
+        Log.d(TAG, "Pie chart displayed successfully")
     }
 
-    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+    }
 }

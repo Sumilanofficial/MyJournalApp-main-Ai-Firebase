@@ -6,172 +6,97 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.matrix.myjournal.Adapters.ResponseAdapter
 import com.matrix.myjournal.Adapters.ShowImageAdapter
-import com.matrix.myjournal.Entity.CombinedResponseEntity
+import com.matrix.myjournal.DataClasses.JournalEntry
 import com.matrix.myjournal.Interfaces.ResponseClickInterface
-import com.matrix.myjournal.databinding.FragmentJournalsBinding
 import com.matrix.myjournal.databinding.CustomUpdateDialogBinding
 import com.matrix.myjournal.databinding.DeleteDialogBindingBinding
-import com.matrix.myjournal.questionresdatabase.QuestionResDatabase
+import com.matrix.myjournal.databinding.FragmentJournalsBinding
+import com.matrix.myjournal.databinding.YourProgressDialogBinding
+import com.matrix.myjournal.utils.CloudinaryHelper
+import kotlinx.coroutines.launch
 
- class JournalsFragment : Fragment(), ResponseClickInterface {
+class JournalsFragment : Fragment(), ResponseClickInterface {
+
     private var binding: FragmentJournalsBinding? = null
     private var responseAdapter: ResponseAdapter? = null
-    private var questionResDatabase: QuestionResDatabase? = null
-    private val combinedResponsesList: ArrayList<CombinedResponseEntity> = arrayListOf()
-    private val selectedImageUris: MutableList<Uri> = mutableListOf()
+    private val journalList = arrayListOf<JournalEntry>()
+
+    // Holds the URLs of existing and newly uploaded images (strings)
+    private val combinedImageUrls = mutableListOf<String>()
+
+    // Holds newly selected Uris (to upload)
+    private val newImageUris = mutableListOf<Uri>()
+
     private var showImageAdapter: ShowImageAdapter? = null
     private lateinit var getContent: ActivityResultLauncher<String>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Initialize Cloudinary helper
+        CloudinaryHelper.init(requireContext())
+
+        // Register for image picking result once here
+        getContent = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+            if (!uris.isNullOrEmpty()) {
+                newImageUris.addAll(uris)
+                Toast.makeText(requireContext(), "${uris.size} images selected", Toast.LENGTH_SHORT).show()
+                // Optionally refresh UI to show selected images if your adapter supports it
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentJournalsBinding.inflate(inflater, container, false)
-        return binding?.root
+        return binding!!.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                selectedImageUris.add(it)
-                showImageAdapter?.updateImages(selectedImageUris)
-            }
-        }
-
-        questionResDatabase = QuestionResDatabase.getInstance(requireContext())
-
-        responseAdapter = ResponseAdapter(requireContext(), combinedResponsesList, this)
+        responseAdapter = ResponseAdapter(requireContext(), journalList, this)
         binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        binding?.recyclerView?.setHasFixedSize(true)
         binding?.recyclerView?.adapter = responseAdapter
 
         fetchAndDisplayData()
     }
 
     private fun fetchAndDisplayData() {
-        val fetchedResponses = questionResDatabase?.questionResDao()?.getCombinedResponses() ?: emptyList()
-        combinedResponsesList.clear()
-        combinedResponsesList.addAll(fetchedResponses)
-        responseAdapter?.notifyDataSetChanged()
-        // Hide the TextView (set visibility to GONE) if the list is not empty
-        if (combinedResponsesList.isNotEmpty()) {
-            binding?.txtNoJouranl?.visibility = View.GONE  // TextView goes GONE
-        } else {
-            binding?.txtNoJouranl?.visibility = View.VISIBLE  // Show TextView if no data
-        }
+        Firebase.firestore.collection("JournalEntries")
+            .get()
+            .addOnSuccessListener { result ->
+                journalList.clear()
+                for (doc in result.documents) {
+                    val entry = doc.toObject(JournalEntry::class.java)
+                    if (entry != null) {
+                        entry.id = doc.id
+                        journalList.add(entry)
+                    }
+                }
+                responseAdapter?.notifyDataSetChanged()
+                binding?.txtNoJouranl?.visibility = if (journalList.isEmpty()) View.VISIBLE else View.GONE
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Failed to fetch journal entries", e)
+            }
     }
 
     override fun deleteResponse(position: Int) {
-        val deleteDialogBinding = DeleteDialogBindingBinding.inflate(layoutInflater)
-        val dialog = Dialog(requireContext()).apply {
-            setContentView(deleteDialogBinding.root)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            show()
-
-            deleteDialogBinding.btnYes.setOnClickListener {
-                if (position >= 0 && position < combinedResponsesList.size) {
-                    val combinedResponseToDelete = combinedResponsesList[position]
-
-                    questionResDatabase?.questionResDao()?.deleteCombinedResponse(combinedResponseToDelete.id)
-
-                    combinedResponsesList.removeAt(position)
-                    responseAdapter?.notifyItemRemoved(position)
-                    responseAdapter?.notifyItemRangeChanged(position, combinedResponsesList.size)
-                }
-                dismiss()
-            }
-
-            deleteDialogBinding.btnNo.setOnClickListener {
-                dismiss()
-            }
-        }
-    }
-
-    override fun deleteImage(position: Int) {
-        // Implement delete image logic if needed
-    }
-
-    override fun updateResponse(position: Int, id: Int) {
-        val combinedResponse = questionResDatabase?.questionResDao()?.getCombinedResponseById(id)
-        if (combinedResponse != null) {
-            val customUpdateDialog = CustomUpdateDialogBinding.inflate(layoutInflater)
-            customUpdateDialog.etTitle.setText(combinedResponse.title ?: "")
-            customUpdateDialog.txtCombinedresponse.setText(combinedResponse.combinedResponse ?: "")
-
-            val dialog = Dialog(requireContext()).apply {
-                setContentView(customUpdateDialog.root)
-                window?.apply {
-                    setLayout(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    setBackgroundDrawable(ColorDrawable(Color.WHITE))
-                    decorView.setPadding(0, 0, 0, 0)
-                    setWindowAnimations(R.style.DialogAnimation)
-                }
-                show()
-
-                // Handle image updates similarly
-                val imageStrings = parseUrisFromJson(combinedResponse.imageDataBase64 ?: "")
-                val imageUris = imageStrings.map { Uri.parse(it) }.toMutableList()
-                selectedImageUris.clear()
-                selectedImageUris.addAll(imageUris)
-                Log.d("UpdateDate", "Loaded Image URIs: $selectedImageUris")
-
-                showImageAdapter = ShowImageAdapter(requireContext(), selectedImageUris) { uri ->
-                    showDeleteImageConfirmationDialog(uri)
-                }
-
-                val gridLayoutManager = GridLayoutManager(requireContext(), 2)
-                customUpdateDialog.recyclerView.layoutManager = gridLayoutManager
-                customUpdateDialog.recyclerView.adapter = showImageAdapter
-
-                customUpdateDialog.fabaddimage.setOnClickListener {
-                    getContent.launch("image/*")
-                }
-
-                customUpdateDialog.btnDone.setOnClickListener {
-                    val updatedTitle = customUpdateDialog.etTitle.text.toString()
-                    val updatedResponse = customUpdateDialog.txtCombinedresponse.text.toString()
-                    val imageUrisJson = Gson().toJson(selectedImageUris.map { it.toString() })
-
-                    combinedResponse.title = updatedTitle
-                    combinedResponse.combinedResponse = updatedResponse
-                    combinedResponse.imageDataBase64 = imageUrisJson
-
-                    questionResDatabase?.questionResDao()?.updateCombinedResponse(combinedResponse)
-
-                    combinedResponsesList[position] = combinedResponse
-                    responseAdapter?.notifyItemChanged(position)
-
-                    dismiss()
-                }
-            }
-        }
-    }
-
-    override fun editResponse(position: Int, entryId: Int) {
-        TODO("Not yet implemented")
-    }
-
-    private fun showDeleteImageConfirmationDialog(uri: Uri) {
         val dialogBinding = DeleteDialogBindingBinding.inflate(layoutInflater)
         val dialog = Dialog(requireContext()).apply {
             setContentView(dialogBinding.root)
@@ -180,25 +105,152 @@ import com.matrix.myjournal.questionresdatabase.QuestionResDatabase
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
             show()
+        }
 
-            dialogBinding.btnYes.setOnClickListener {
-                selectedImageUris.remove(uri)
-                showImageAdapter?.updateImages(selectedImageUris)
-                dismiss()
+        dialogBinding.btnYes.setOnClickListener {
+            val journal = journalList[position]
+            Firebase.firestore.collection("JournalEntries")
+                .document(journal.id ?: "")
+                .delete()
+                .addOnSuccessListener {
+                    journalList.removeAt(position)
+                    responseAdapter?.notifyItemRemoved(position)
+                    responseAdapter?.notifyItemRangeChanged(position, journalList.size)
+                    dialog.dismiss()
+                }
+                .addOnFailureListener {
+                    Log.e("Firestore", "Delete failed", it)
+                    dialog.dismiss()
+                }
+        }
+
+        dialogBinding.btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+    }
+
+    override fun updateResponse(position: Int, id: Int) {
+        val journal = journalList.getOrNull(position) ?: return
+
+        combinedImageUrls.clear()
+        newImageUris.clear()
+
+        // Load existing image URLs
+        val existingUrls = journal.imageUrls?.filterIsInstance<String>() ?: emptyList()
+        combinedImageUrls.addAll(existingUrls)
+
+        val customUpdateDialog = CustomUpdateDialogBinding.inflate(layoutInflater)
+        customUpdateDialog.etTitle.setText(journal.title ?: "")
+        customUpdateDialog.txtCombinedresponse.setText(journal.combinedResponse ?: "")
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(customUpdateDialog.root)
+            window?.apply {
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                setBackgroundDrawable(ColorDrawable(Color.WHITE))
+                decorView.setPadding(0, 0, 0, 0)
+                setWindowAnimations(R.style.DialogAnimation)
             }
+            show()
+        }
 
-            dialogBinding.btnNo.setOnClickListener {
-                dismiss()
+        showImageAdapter = ShowImageAdapter(requireContext(), combinedImageUrls) { imageUrl ->
+            showDeleteImageConfirmationDialog(imageUrl)
+        }
+        customUpdateDialog.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        customUpdateDialog.recyclerView.adapter = showImageAdapter
+
+        customUpdateDialog.fabaddimage.setOnClickListener {
+            getContent.launch("image/*")
+        }
+
+        customUpdateDialog.btnDone.setOnClickListener {
+            val updatedTitle = customUpdateDialog.etTitle.text.toString()
+            val updatedText = customUpdateDialog.txtCombinedresponse.text.toString()
+
+            // Show progress dialog
+            val progressDialog = Dialog(requireContext())
+            val progressBinding = YourProgressDialogBinding.inflate(layoutInflater)
+            progressDialog.setContentView(progressBinding.root)
+            progressDialog.setCancelable(false)
+            progressDialog.show()
+
+            lifecycleScope.launch {
+                try {
+                    val uploadedUrls = mutableListOf<String>()
+                    for (uri in newImageUris) {
+                        val url = CloudinaryHelper.uploadImage(uri, requireContext())
+                        if (url != null) uploadedUrls.add(url)
+                    }
+
+                    // Merge all URLs: existing + newly uploaded
+                    val allUrls = combinedImageUrls.toMutableList()
+                    allUrls.addAll(uploadedUrls)
+
+                    Firebase.firestore.collection("JournalEntries")
+                        .document(journal.id ?: "")
+                        .update(
+                            mapOf(
+                                "title" to updatedTitle,
+                                "combinedResponse" to updatedText,
+                                "imageUrls" to allUrls
+                            )
+                        )
+                        .addOnSuccessListener {
+                            journal.title = updatedTitle
+                            journal.combinedResponse = updatedText
+                            journal.imageUrls = allUrls
+                            responseAdapter?.notifyItemChanged(position)
+                            progressDialog.dismiss()
+                            dialog.dismiss()
+                            Toast.makeText(requireContext(), "Journal updated", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Firestore", "Failed to update journal", e)
+                            progressDialog.dismiss()
+                            Toast.makeText(requireContext(), "Failed to update journal", Toast.LENGTH_SHORT).show()
+                        }
+                } catch (e: Exception) {
+                    Log.e("UpdateResponse", "Image upload error", e)
+                    Toast.makeText(requireContext(), "Image upload failed", Toast.LENGTH_SHORT).show()
+                    progressDialog.dismiss()
+                }
             }
         }
     }
 
-    private fun parseUrisFromJson(json: String): List<String> {
-        return try {
-            val type = object : TypeToken<List<String>>() {}.type
-            Gson().fromJson(json, type)
-        } catch (e: Exception) {
-            emptyList()
+    private fun showDeleteImageConfirmationDialog(imageUrl: String) {
+        val dialogBinding = DeleteDialogBindingBinding.inflate(layoutInflater)
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogBinding.root)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            show()
         }
+
+        dialogBinding.btnYes.setOnClickListener {
+            combinedImageUrls.remove(imageUrl)
+            showImageAdapter?.updateImages(combinedImageUrls)
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+    }
+
+    override fun deleteImage(position: Int) {
+        // Not used here
+    }
+
+    override fun editResponse(position: Int, entryId: Int) {
+        // Optional override if needed
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }

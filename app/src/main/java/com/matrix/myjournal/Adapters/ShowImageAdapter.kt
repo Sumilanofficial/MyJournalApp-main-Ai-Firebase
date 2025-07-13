@@ -9,14 +9,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.matrix.myjournal.Interfaces.ResponseClickInterface
 import com.matrix.myjournal.R
 import com.matrix.myjournal.databinding.DeleteDialogBindingBinding
 
 class ShowImageAdapter(
     private val context: Context,
-    private var images: MutableList<Uri>,
-    private val onImageLongPress: (Uri) -> Unit // Callback for long press
+    private var images: MutableList<String>, // ✅ Accept String URLs
+    private val onImageLongPress: (String) -> Unit // Callback for long press
 ) : RecyclerView.Adapter<ShowImageAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -32,7 +31,9 @@ class ShowImageAdapter(
     override fun getItemCount(): Int = images.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val imageUri = images[position]
+        val imageUrl = images[position]
+        val imageUri = Uri.parse(imageUrl) // ✅ Safe conversion from String to Uri
+
         Glide.with(context)
             .load(imageUri)
             .into(holder.imageView)
@@ -40,6 +41,7 @@ class ShowImageAdapter(
         // Handle long press to show delete confirmation dialog
         holder.itemView.setOnLongClickListener {
             showDeleteDialog(position)
+            onImageLongPress(imageUrl) // Optionally trigger your callback
             true // Indicates the long-click event has been handled
         }
     }
@@ -73,7 +75,7 @@ class ShowImageAdapter(
         }
     }
 
-    fun updateImages(newImages: MutableList<Uri>) {
+    fun updateImages(newImages: MutableList<String>) {
         images.clear()
         images.addAll(newImages)
         notifyDataSetChanged()

@@ -16,11 +16,12 @@ import com.anychart.enums.Anchor
 import com.anychart.enums.HoverMode
 import com.anychart.enums.Position
 import com.anychart.enums.TooltipPositionMode
+import com.google.firebase.firestore.FirebaseFirestore
+import com.matrix.myjournal.DataClasses.JournalEntry
 import com.matrix.myjournal.databinding.FragmentColumnChartBinding
-import com.matrix.myjournal.questionresdatabase.QuestionResDatabase
-import com.matrix.myjournal.questionresdatabase.WordCountPerDay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class ColumnChartFragment : Fragment() {
@@ -31,7 +32,7 @@ class ColumnChartFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentColumnChartBinding.inflate(layoutInflater)
+        binding = FragmentColumnChartBinding.inflate(inflater, container, false)
         return binding?.root
     }
 
@@ -43,31 +44,43 @@ class ColumnChartFragment : Fragment() {
     private fun fetchAndDisplayData() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Fetch data from the database
                 val wordCounts = withContext(Dispatchers.IO) {
-                    QuestionResDatabase.getInstance(requireContext()).questionResDao().getWordCountPerDay()
+                    val snapshot = FirebaseFirestore.getInstance()
+                        .collection("JournalEntries")
+                        .get()
+                        .await()
+
+                    snapshot.documents.mapNotNull { doc ->
+                        val entry = doc.toObject(JournalEntry::class.java)
+                        entry?.let {
+                            val date = it.entryDate ?: return@let null
+                            val wordCount = it.combinedResponse?.split("\\s+".toRegex())?.size ?: 0
+                            date to wordCount
+                        }
+                    }.groupBy { it.first } // Group by date
+                        .mapValues { entry -> entry.value.sumOf { it.second } } // Sum word counts
+                        .toList()
                 }
 
-                // Display the chart with the fetched data
                 displayChart(wordCounts)
             } catch (e: Exception) {
-                // Handle error
+                e.printStackTrace()
+                // Show fallback/error UI if needed
             }
         }
     }
 
-    private fun displayChart(wordCounts: List<WordCountPerDay>) {
+    private fun displayChart(wordCounts: List<Pair<String, Int>>) {
         val columnChartView: AnyChartView? = binding?.anyChartViewColumn
-
-        // Prepare data entries for the column chart
         val columnData: MutableList<DataEntry> = ArrayList()
-        for (wordCount in wordCounts) {
-            columnData.add(ValueDataEntry(wordCount.entryDate, wordCount.wordCount))
+
+        for ((date, count) in wordCounts) {
+            columnData.add(ValueDataEntry(date, count))
         }
 
-        // Create and configure the column chart
         val cartesian: Cartesian = AnyChart.cartesian()
         val column: Column = cartesian.column(columnData)
+
         column.tooltip()
             .titleFormat("{%X}")
             .position(Position.CENTER_BOTTOM)
@@ -85,9 +98,11 @@ class ColumnChartFragment : Fragment() {
         cartesian.xAxis(0).title("Date")
         cartesian.yAxis(0).title("Word Count")
 
-        // Set the column chart to the view
         columnChartView?.setChart(cartesian)
     }
 
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+    }
 }

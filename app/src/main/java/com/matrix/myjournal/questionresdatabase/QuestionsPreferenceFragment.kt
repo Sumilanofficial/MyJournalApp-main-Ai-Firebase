@@ -15,7 +15,6 @@
     import com.matrix.myjournal.Adapters.QuestionsAdapter
     import com.matrix.myjournal.DataClasses.CombinedResponse
     import com.matrix.myjournal.DataClasses.SharedViewModel
-    import com.matrix.myjournal.Entity.CombinedResponseEntity
     import com.matrix.myjournal.Entity.QuestionsEntities
     import com.matrix.myjournal.Interfaces.QuestionClickInterface
     import com.matrix.myjournal.MainActivity
