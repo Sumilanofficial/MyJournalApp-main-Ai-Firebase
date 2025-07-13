@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">MyJournal</string>
+    <string name="designedby">Designed by Matrix in Punjab</string>
+    <string name="slogan">"The past is history, \nthe future is a mystery and \nthe present is a gift "</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="goodbye"><![CDATA[Good bye\nbook&pen]]></string>
+    <string name="reflect">Reflect,Write,\nRepeat</string>
+    <string name="writeyourownjourney">Write Your Story, Write Your Journey.</string>
+    <string name="login">Log in</string>
+    <string name="register">Register</string>
+    <string name="Back">Back</string>
+    <string name="arrow">&lt;</string>
+    <string name="skip">Skip</string>
+    <string name="HeyUser">Hi Sumilan</string>
+    <string name="Readytowrite">Are You ready to write your day?</string>
+    <string name="search">Search</string>
+    <string name="calendar">Calendar</string>
+    <string name="profile">Profile</string>
+    <string name="home">Home</string>
+    <string name="GoodMorning">Good Morning</string>
+    <string name="GoodNight">Good Night</string>
+    <string name="Welcome">Welcome</string>
+    <string name="Readytopendown">"Are you ready to pen down your \njourney today?"</string>
+    <string name="recentAdded">Recent Added</string>
+    <string name="ViewAll">View all</string>
+    <string name="date">SATURDAY,OCT 7</string>
+    <string name="inyourming">What is in your mind?</string>
+    <string name="question1">"What was the highlight of your day?"</string>
+    <string name="question2">""Is there a challenge you faced today? How did you handle it?" "</string>
+    <string name="question3">""What made you smile or laugh today?""</string>
+    <string name="question4">"'What's one thing you learned today?'"</string>
+    <string name="question5">""Did you have a moment of personal growth or self-discovery?""</string>
+    <string name="question6">"'What's something you're looking forward to tomorrow?'"</string>
+    <string name="question7">""How did you take care of yourself today?""</string>
+    <string name="question8">""Did you connect with someone in a meaningful way today?""</string>
+    <string name="question9">"'What's a small victory or accomplishment you achieved today?'"</string>
+    <string name="question10">""What emotions did you experience today, and why?"  "</string>
+    <string name="addsomething">"'Anything else you'd like to add about your day?'"</string>
+    <string name="done">\"Done for Today\"</string>
+    <string name="endofdayinsight">\"End-of-Day Insights\"</string>
+    <string name="addyourques">Add Your Question</string>
+    <string name="add">Add</string>
+    <string name="next">Next</string>
+    <string name="todaysQuest">\"Today\'s Quest: Discover or Create?\"</string>
+    <string name="no">No</string>
+    <string name="Yes">Yes</string>
+    <string name="Title">Add Title\n</string>
+    <string name="EnterTitle">Enter Title</string>
+    <string name="skipAll">Skip All</string>
+    <string name="EditJournal">Edit Journal</string>
+    <string name="Done">Done</string>
+    <string name="etTitle">Edit Title</string>
+    <string name="add_questions">Add Questions</string>
+    <string name="Insights">Insights\n</string>
+
+
+</resources>

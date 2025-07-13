@@ -1,0 +1,15 @@
+<!-- res/drawable/ic_menu_round.xml -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/black" />
+            <size android:width="24dp" android:height="24dp"/>
+        </shape>
+    </item>
+    <item android:gravity="center">
+        <bitmap
+            android:src="@drawable/ic_menu_black_24dp"
+            android:tint="@color/white"
+            android:gravity="center"/>
+    </item>
+</layer-list>

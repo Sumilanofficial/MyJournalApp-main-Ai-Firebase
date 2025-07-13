@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+
+
+    <item
+        android:id="@+id/bottom_home"
+        android:icon="@drawable/home_4_line"
+        android:title="Home"
+        android:actionLayout="@layout/fragment_home"/>
+ <item
+        android:id="@+id/bottom_jouranals"
+        android:icon="@drawable/feathericon"
+        android:title="Journals"
+        android:actionLayout="@layout/fragment_home"/>
+
+
+    <item
+        android:id="@+id/bottom_insight"
+        android:icon="@drawable/insights"
+        android:title="Insights"
+        android:actionLayout="@layout/fragment_home"/>
+    <item
+        android:id="@+id/bottom_profile"
+        android:icon="@drawable/profile_circle_svgrepo_com"
+        android:title="Profile"
+        android:actionLayout="@layout/fragment_home"/>
+</menu>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_marginTop="@dimen/dp_10"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDelete"
+        style="@style/CustomLowBold"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_14"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:backgroundTint="@color/black"
+        android:padding="@dimen/dp_10"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:cornerRadius="1000dp"
+        android:visibility="gone"
+        app:icon="@drawable/baseline_delete_24"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEdit"
+        style="@style/CustomLowBold"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_14"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:backgroundTint="@color/black"
+        android:padding="@dimen/dp_10"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:cornerRadius="1000dp"
+        android:visibility="gone"
+        app:icon="@drawable/baseline_edit"
+         />
+    <TextView
+        android:layout_width="@dimen/dp_30"
+        android:layout_height="@dimen/dp_30"
+        android:background="@drawable/circular_button"
+        android:layout_marginTop="@dimen/dp_24"
+        android:layout_marginStart="@dimen/dp_10"
+        android:textColor="@color/white"
+        android:text="10"
+
+        android:gravity="center"
+        style="@style/CustomLowBold"
+        android:textStyle="bold"
+        android:id="@+id/txtquestionNo"
+        />
+
+
+    <TextView
+        android:id="@+id/txtquestion"
+        style="@style/CustomMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_24"
+        android:layout_marginBottom="@dimen/dp_10"
+
+        android:text="dgdfgdfgdfgdfg" />
+
+
+
+
+</LinearLayout>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView2"
+    android:background="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    >
+
+    <LinearLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/dp_20"
+        tools:context=".questionresdatabase.QuestionsPreferenceFragment">
+
+        <TextView
+            android:id="@+id/txtGoodbye"
+            style="@style/CustomHighBold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/todaysQuest"
+            android:textColor="@color/black"
+            android:textSize="@dimen/dp_35"
+            android:layout_marginBottom="@dimen/dp_20"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/txttitle"
+            style="@style/CustomHighBold"
+            android:layout_width="wrap_content"
+            android:layout_height="31dp"
+            android:text="@string/Title"
+            android:textColor="@color/black"
+            android:textSize="@dimen/sp_20"
+            android:textStyle="bold" />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/EnterTitle"
+            android:id="@+id/etTitle" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="@dimen/dp_25">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addQuestion"
+                style="@style/CustomMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/blue"
+                android:text="@string/add"
+                android:textColor="@color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/next"
+                style="@style/CustomMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dp_100"
+                android:backgroundTint="@color/green"
+                android:text="@string/next"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
