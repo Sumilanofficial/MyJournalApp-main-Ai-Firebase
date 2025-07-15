@@ -3,6 +3,7 @@ package com.matrix.myjournal
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
@@ -18,7 +19,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        enableEdgeToEdge()
         // Initialize ViewBinding
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -29,19 +30,19 @@ class LoginActivity : AppCompatActivity() {
         // Email login
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+            val password = binding.etPassword.text.toString()
             signInWithEmail(email, password)
         }
 
-        // Email signup
-        binding.signupButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
-            signUpWithEmail(email, password)
-        }
+//        // Email signup
+//        binding.signupButton.setOnClickListener {
+//            val email = binding.emailEditText.text.toString()
+//            val password = binding.etPassword.text.toString()
+//            signUpWithEmail(email, password)
+//        }
 
         // Google Sign-In
-        binding.googleLoginButton.setOnClickListener {
+        binding.btnGoogle.setOnClickListener {
             lifecycleScope.launch {
                 signInHelper.launchSignIn(this@LoginActivity) { success, message ->
                     if (success) {
