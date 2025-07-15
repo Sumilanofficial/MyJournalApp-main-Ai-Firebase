@@ -18,9 +18,9 @@ object CloudinaryHelper {
         if (cloudinary != null) return
 
         val config: HashMap<String, String> = HashMap()
-        config["cloud_name"] = "dwhv4gi2w"
-        config["api_key"] = "592795373161672"
-        config["api_secret"] = "MxXS93RfRi5XHJ8n3eakcR_c6_Q"
+        config["cloud_name"] = ""
+        config["api_key"] = ""
+        config["api_secret"] = ""
         config["secure"] = "true"                       // Optional, recommended
 
         MediaManager.init(context, config)
