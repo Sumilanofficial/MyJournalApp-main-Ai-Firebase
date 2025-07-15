@@ -21,7 +21,7 @@ class GoogleSignInHelper(private val context: Context) {
             val googleIdOption = GetGoogleIdOption.Builder()
                 // ⚠️ Allow all Google accounts (important if it's first time)
                 .setFilterByAuthorizedAccounts(false)
-                .setServerClientId("912212754414-0buo46mnk2s6u3eut6q2leeulr2ks032.apps.googleusercontent.com") // Your Web Client ID
+                .setServerClientId("") // Your Web Client ID
                 .build()
 
             val request = GetCredentialRequest.Builder()
