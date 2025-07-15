@@ -373,7 +373,7 @@ class QuestionsFragment : Fragment(), QuestionClickInterface {
             try {
                 val model = com.google.ai.client.generativeai.GenerativeModel(
                     modelName = "gemini-2.5-flash",
-                    apiKey = "AIzaSyBQ-RZNZitBUx_tNbn5Hz4G4Iffvl06vXI"
+                    apiKey = ""
                 )
 
                 val response = model.generateContent(prompt)
